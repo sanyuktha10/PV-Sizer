@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick PV System Sizer</title>
+    <!-- 1. Link to your custom CSS file -->
+    <link rel="stylesheet" href="style1.css">
+</head>
+<body>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        
+        <!-- Left Side: Inputs -->
+        <div class="input-column">
+            <h2 class="title">PV System Sizer</h2>
+            
+            <form id="pv-form" class="form-container">
+                <!-- Section 1: Load & Location -->
+                <div>
+                    <h3 class="section-title">Load & Location</h3>
+                    <div class="form-group">
+                        <div>
+                            <label for="energy-demand" class="form-label">Total Daily Energy Demand (Wh)</label>
+                            <input type="number" id="energy-demand" value="5000" class="form-input">
+                        </div>
+                        <div>
+                            <label for="peak-sun-hours" class="form-label">Peak Sun Hours (PSH)</label>
+                            <input type="number" id="peak-sun-hours" value="4.5" step="0.1" class="form-input">
+                            <p class="form-hint">Avg. hours of peak sunlight (e.g., 3.5 - 5.5).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: System Components -->
+                <div>
+                    <h3 class="section-title">System Components</h3>
+                    <div class="form-group">
+                        <div>
+                            <label for="panel-wattage" class="form-label">PV Panel Wattage (Wp)</label>
+                            <input type="number" id="panel-wattage" value="400" class="form-input">
+                        </div>
+                         <div>
+                            <label for="battery-voltage" class="form-label">System DC Voltage (V)</label>
+                            <input type="number" id="battery-voltage" value="48" class="form-input">
+                             <p class="form-hint">Nominal battery bank voltage (e.g., 12, 24, 48).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Design Parameters -->
+                <div>
+                    <h3 class="section-title">Design Parameters</h3>
+                    <div class="grid-3-col">
+                        <div>
+                            <label for="system-losses" class="form-label">Losses (%)</label>
+                            <input type="number" id="system-losses" value="30" class="form-input">
+                        </div>
+                        <div>
+                            <label for="days-autonomy" class="form-label">Autonomy (Days)</label>
+                            <input type="number" id="days-autonomy" value="2" class="form-input">
+                        </div>
+                        <div>
+                            <label for="dod" class="form-label">DoD (%)</label>
+                            <input type="number" id="dod" value="80" class="form-input">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Calculate Button -->
+                <div id="calculate-btn-container">
+                    <button type="button" id="calculate-btn" class="calculate-btn">
+                        Calculate System Size
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Right Side: Results -->
+        <div class="results-column">
+            <h2 class="title title-light">Sizing Results</h2>
+            
+            <div class="results-container">
+                <!-- PV Array Card -->
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-icon-wrapper yellow">
+                            <svg class="result-icon yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        </div>
+                        <h3 class="result-title">PV Array (Solar Panels)</h3>
+                    </div>
+                    <div class="result-body">
+                        <div class="result-row">
+                            <span class="result-label">Total Array Power (Wp):</span>
+                            <span id="total-power" class="result-value yellow">0 Wp</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">Min. Number of Panels:</span>
+                            <span id="num-panels" class="result-value white">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Inverter Card -->
+                <div class="result-card">
+                    <div class="result-header">
+                         <div class="result-icon-wrapper green">
+                            <svg class="result-icon green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        </div>
+                        <h3 class="result-title">Inverter</h3>
+                    </div>
+                    <div class="result-body">
+                        <div class="result-row">
+                            <span class="result-label">Recommended Size (W):</span>
+                            <span id="inverter-size" class="result-value green">0 W</span>
+                        </div>
+                        <p class="result-hint">Includes a 25% oversizing factor for safety and efficiency.</p>
+                    </div>
+                </div>
+
+                <!-- Battery Bank Card -->
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-icon-wrapper blue">
+                            <svg class="result-icon blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 10V5a2 2 0 00-2-2H8a2 2 0 00-2 2v5h12zm-4 3H6v6a2 2 0 002 2h8a2 2 0 002-2v-6h-4zM9 14h6"></path></svg>
+                        </div>
+                        <h3 class="result-title">Battery Bank</h3>
+                    </div>
+                    <div class="result-body">
+                        <div class="result-row">
+                            <span class="result-label">Total Capacity (Wh):</span>
+                            <span id="battery-wh" class="result-value white">0 Wh</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">Required Capacity (Ah):</span>
+                            <span id="battery-ah" class="result-value blue">0 Ah</span>
+                        </div>
+                        <p class="result-hint">Calculated at your specified <span id="battery-voltage-text" class="result-hint-emphasis">48V</span> system voltage.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. JavaScript Logic -->
+    <script>
+        // Debounce function to prevent alert spam
+        function debounce(func, timeout = 300){
+            let timer;
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => { func.apply(this, args); }, timeout);
+            };
+        }
+
+        // Custom modal alert
+        function showModalAlert(message) {
+            // Check if a modal already exists
+            if (document.getElementById('alert-modal')) {
+                return;
+            }
+
+            // Create modal elements
+            const modalBackdrop = document.createElement('div');
+            modalBackdrop.id = 'alert-modal-backdrop';
+            modalBackdrop.className = 'modal-backdrop';
+            
+            const modalContent = document.createElement('div');
+            modalContent.id = 'alert-modal';
+            modalContent.className = 'modal-content';
+            
+            const modalTitle = document.createElement('h3');
+            modalTitle.className = 'modal-title';
+            modalTitle.textContent = 'Invalid Input';
+            
+            const modalMessage = document.createElement('p');
+            modalMessage.className = 'modal-message';
+            modalMessage.textContent = message;
+            
+            const closeButton = document.createElement('button');
+            closeButton.className = 'modal-button';
+            closeButton.textContent = 'OK';
+            
+            // Assemble modal
+            modalContent.appendChild(modalTitle);
+            modalContent.appendChild(modalMessage);
+            modalContent.appendChild(closeButton);
+            modalBackdrop.appendChild(modalContent);
+            document.body.appendChild(modalBackdrop);
+            
+            // Close event
+            const closeModal = () => {
+                if(document.body.contains(modalBackdrop)) {
+                    document.body.removeChild(modalBackdrop);
+                }
+            };
+            closeButton.addEventListener('click', closeModal);
+            modalBackdrop.addEventListener('click', (e) => {
+                if (e.target === modalBackdrop) {
+                    closeModal();
+                }
+            });
+        }
+        
+        const debouncedAlert = debounce(showModalAlert, 500);
+
+        function calculateSizing() {
+            // --- 1. Get All Input Values ---
+            const demand = parseFloat(document.getElementById('energy-demand').value);
+            const psh = parseFloat(document.getElementById('peak-sun-hours').value);
+            const panelWattage = parseFloat(document.getElementById('panel-wattage').value);
+            const batteryVoltage = parseFloat(document.getElementById('battery-voltage').value);
+            const lossesPercent = parseFloat(document.getElementById('system-losses').value);
+            const autonomy = parseFloat(document.getElementById('days-autonomy').value);
+            const dodPercent = parseFloat(document.getElementById('dod').value);
+
+            // --- 2. Perform Validations ---
+            if (isNaN(demand) || isNaN(psh) || isNaN(panelWattage) || isNaN(batteryVoltage) || isNaN(lossesPercent) || isNaN(autonomy) || isNaN(dodPercent)) {
+                debouncedAlert("Please fill in all fields with valid numbers.");
+                return;
+            }
+            if (psh <= 0 || panelWattage <= 0 || batteryVoltage <= 0 || demand <= 0) {
+                 debouncedAlert("Demand, PSH, Panel Wattage, and Battery Voltage must be greater than zero.");
+                return;
+            }
+            if (lossesPercent < 0 || lossesPercent > 90) {
+                 debouncedAlert("System Losses should be between 0% and 90%.");
+                return;
+            }
+             if (dodPercent < 10 || dodPercent > 100) {
+                 debouncedAlert("Battery DoD should be between 10% and 100%.");
+                return;
+            }
+
+            // --- 3. Perform Calculations ---
+
+            // PV Array Sizing
+            const lossFactor = 1 / (1 - (lossesPercent / 100)); // More accurate loss calculation
+            const energyRequiredFromPV = demand * lossFactor;
+            const totalPowerWp = energyRequiredFromPV / psh;
+            const numPanels = Math.ceil(totalPowerWp / panelWattage);
+
+            // Inverter Sizing
+            // Standard practice is to size the inverter 25% larger than the array's DC rating
+            const inverterSize = totalPowerWp * 1.25;
+
+            // Battery Sizing
+            const dodFactor = dodPercent / 100;
+            const totalEnergyStorageWh = (demand * autonomy) / dodFactor;
+            const totalCapacityAh = totalEnergyStorageWh / batteryVoltage;
+
+            // --- 4. Update UI with Results ---
+            
+            // Helper to format numbers with commas
+            const format = (num) => num.toLocaleString(undefined, { maximumFractionDigits: 1 });
+
+            document.getElementById('total-power').textContent = `${format(totalPowerWp)} Wp`;
+            document.getElementById('num-panels').textContent = `${format(numPanels)}`;
+            
+            document.getElementById('inverter-size').textContent = `${format(inverterSize)} W`;
+            
+            document.getElementById('battery-wh').textContent = `${format(totalEnergyStorageWh)} Wh`;
+            document.getElementById('battery-ah').textContent = `${format(totalCapacityAh)} Ah`;
+            document.getElementById('battery-voltage-text').textContent = `${format(batteryVoltage)}V`;
+        }
+        
+        // --- 5. Event Listeners ---
+        
+        // Calculate on button click
+        document.getElementById('calculate-btn').addEventListener('click', calculateSizing);
+
+        // Recalculate automatically on input change (with debounce)
+        const inputs = document.querySelectorAll('.form-input');
+        const debouncedCalculate = debounce(calculateSizing, 300);
+        inputs.forEach(input => {
+            input.addEventListener('input', debouncedCalculate);
+        });
+
+        // Trigger initial calculation on load
+        window.addEventListener('load', calculateSizing);
+    </script>
+
+</body>
+</html>
